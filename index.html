@@ -4,128 +4,17 @@
     <meta charset="UTF-8" />
     <title>SVARTLAGER ETCS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      :root {
-        --gc-green: #4fb648;
-        --gc-black: #000;
-        --gc-darkgray: #3a3a3a;
-        --gc-lightgray: #f2f2f2;
-        --gc-white: #fff;
-        font-family:
-          system-ui,
-          -apple-system,
-          Segoe UI,
-          Roboto,
-          Arial,
-          sans-serif;
-      }
-      body {
-        margin: 0;
-        background: var(--gc-lightgray);
-        color: var(--gc-black);
-      }
-      header {
-        background: var(--gc-darkgray);
-        color: var(--gc-white);
-        padding: 1rem 2rem;
-        border-bottom: 4px solid var(--gc-green);
-      }
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-      }
-      .brand img {
-        height: 36px;
-        width: auto;
-        display: block;
-      }
-      .subtitle {
-        margin: 0.25rem 0 0;
-        opacity: 0.9;
-      }
-      main {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 1.2rem;
-      }
-      .toolbar {
-        display: flex;
-        gap: 0.5rem;
-        margin: 1rem 0;
-      }
-      input,
-      select,
-      button {
-        font: inherit;
-      }
-      button {
-        padding: 0.55rem 1rem;
-        border: none;
-        background: var(--gc-green);
-        color: #fff;
-        font-weight: 700;
-        cursor: pointer;
-      }
-      button:hover {
-        background: #3b8f39;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #fff;
-      }
-      th {
-        background: var(--gc-darkgray);
-        color: #fff;
-        text-align: left;
-        padding: 0.6rem;
-      }
-      td {
-        padding: 0.5rem;
-        border-bottom: 1px solid #ddd;
-      }
-      tbody tr:hover {
-        background: rgba(79, 182, 72, 0.1);
-      }
-      section {
-        margin: 1.2rem 0;
-      }
-      .item-form,
-      .movement-form {
-        display: grid;
-        gap: 0.8rem;
-        max-width: 460px;
-        background: #fff;
-        padding: 1rem;
-        border: 2px solid var(--gc-darkgray);
-        border-radius: 4px;
-      }
-      .item-form label,
-      .movement-form label {
-        display: flex;
-        flex-direction: column;
-        font-weight: 600;
-      }
-      .status {
-        margin: 0.6rem 0;
-        color: #0a0;
-      }
-      .error {
-        margin: 0.6rem 0;
-        color: #b00;
-      }
-      small.muted {
-        opacity: 0.7;
-      }
-    </style>
+    <!-- Stilmall i repo-root -->
+    <link rel="stylesheet" href="./styles.css" />
   </head>
+
   <body>
     <header>
       <div class="brand">
-        <img src="./assets/GC-Logga.png" alt="Green Cargo" />
-        <div>
-          <h1 style="margin: 0">SVARTLAGER ETCS</h1>
+        <!-- Se till att bilden finns: ./assets/GC-Logga.png -->
+        <img src="./assets/GC-Logga.png" alt="Green Cargo" class="brand_logo" />
+        <div class="brand_text">
+          <h1>SVARTLAGER ETCS</h1>
           <p class="subtitle">
             Internt verktyg för ordning och reda på ETCS-reservdelar
           </p>
@@ -135,11 +24,7 @@
 
     <main>
       <div class="toolbar">
-        <input
-          type="search"
-          id="search"
-          placeholder="Sök artikel (nr/namn/plats)..."
-        />
+        <input type="search" id="search" placeholder="Sök artikel..." />
         <button id="btnReload">Uppdatera</button>
       </div>
 
@@ -159,9 +44,9 @@
           </thead>
           <tbody></tbody>
         </table>
-        <p class="muted">
+        <p style="opacity: 0.75; margin: 0.5rem 0 0 0">
           <small
-            >Tips: Klicka på en artikelrad för att fylla i artikel‑ID i
+            >Klicka på en artikelrad för att fylla i artikel‑ID i
             formuläret.</small
           >
         </p>
@@ -170,33 +55,33 @@
       <section>
         <h2>Lägg till ny artikel</h2>
         <div class="item-form">
-          <label
-            >Artikelnummer (article_no)
+          <label>
+            Artikelnummer (article_no)
             <input id="it-article-no" type="text" placeholder="t.ex. A-100" />
           </label>
-          <label
-            >Benämning (name)
+
+          <label>
+            Benämning (name)
             <input id="it-name" type="text" placeholder="t.ex. Skruv M8x20" />
           </label>
-          <label
-            >Enhet (unit)
+
+          <label>
+            Enhet (unit)
             <input id="it-unit" type="text" value="st" />
           </label>
-          <label
-            >Lagerplats (location)
+
+          <label>
+            Lagerplats (location)
             <input id="it-location" type="text" placeholder="t.ex. HyllA-3" />
           </label>
-          <label
-            style="
-              display: flex;
-              gap: 0.5rem;
-              align-items: center;
-              font-weight: 600;
-            "
-          >
-            <input id="it-active" type="checkbox" checked /> Aktiv
+
+          <label class="check">
+            <input id="it-active" type="checkbox" checked />
+            Aktiv
           </label>
+
           <button id="it-save">Spara artikel</button>
+          <!-- Valfritt statusmeddelande -->
           <div id="it-msg" class="status" style="display: none"></div>
         </div>
       </section>
@@ -204,30 +89,36 @@
       <section>
         <h2>Registrera IN / OUT</h2>
         <div class="movement-form">
-          <label
-            >Artikel-ID:
+          <label>
+            Artikel-ID:
             <input id="mv-item-id" type="number" placeholder="t.ex. 1" />
           </label>
-          <label
-            >Typ:
+
+          <label>
+            Typ:
             <select id="mv-type">
               <option value="IN">IN (inleverans)</option>
               <option value="OUT">OUT (uttag)</option>
             </select>
           </label>
-          <label
-            >Antal:
+
+          <label>
+            Antal:
             <input id="mv-qty" type="number" min="1" placeholder="t.ex. 5" />
           </label>
-          <label
-            >Lagerplats (endast för IN):
+
+          <label>
+            Lagerplats (endast för IN):
             <input id="mv-location" type="text" placeholder="t.ex. HyllA-3" />
           </label>
-          <label
-            >Kommentar (valfri):
+
+          <label>
+            Kommentar (valfri):
             <input id="mv-note" type="text" placeholder="Valfri text" />
           </label>
+
           <button id="mv-submit">Spara händelse</button>
+          <!-- Valfritt statusmeddelande -->
           <div id="mv-msg" class="status" style="display: none"></div>
         </div>
       </section>
@@ -250,208 +141,10 @@
       </section>
     </main>
 
-    <script>
-      console.log("inline app.js loaded");
+    <!-- Ladda Supabase (UMD; global 'supabase'). MÅSTE ligga före app.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-      // >>>>>>>>>>>>>>> BYT DESSA TVÅ LÄNGRE NEDAN <<<<<<<<<<<<<<
-      const SUPABASE_URL = "https://gmpazpyqiczyesoelyqt.supabase.co"; // ex: https://gmpazpyqiczyesoelyqt.supabase.co
-      const SUPABASE_ANON_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcGF6cHlxaWN6eWVzb2VseXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDg5OTMsImV4cCI6MjA4OTQ4NDk5M30.3sha8XnMyn18e_dl9MoBQ7CiF6X7GO5GqfCBaAeuyRE"; // din publika anon key
-
-      const supabaseClient = supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY,
-      );
-
-      // DOM helpers
-      const $ = (sel) => document.querySelector(sel);
-      const els = {
-        search: $("#search"),
-        itemsTbody: $("#itemsTbl tbody"),
-        logTbody: $("#logTbl tbody"),
-        btnReload: $("#btnReload"),
-        mvItemId: $("#mv-item-id"),
-        mvType: $("#mv-type"),
-        mvQty: $("#mv-qty"),
-        mvNote: $("#mv-note"),
-        mvLocation: $("#mv-location"),
-        mvSubmit: $("#mv-submit"),
-        mvMsg: $("#mv-msg"),
-        itArticleNo: $("#it-article-no"),
-        itName: $("#it-name"),
-        itUnit: $("#it-unit"),
-        itLocation: $("#it-location"),
-        itActive: $("#it-active"),
-        itSaveBtn: $("#it-save"),
-        itMsg: $("#it-msg"),
-      };
-
-      // Render: artiklar
-      function renderItems(items) {
-        const q = (els.search.value || "").toLowerCase().trim();
-        els.itemsTbody.innerHTML = "";
-        items
-          .filter(
-            (it) =>
-              !q ||
-              it.name?.toLowerCase().includes(q) ||
-              it.article_no?.toLowerCase().includes(q) ||
-              it.location?.toLowerCase().includes(q),
-          )
-          .forEach((it) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-            <td>${it.article_no ?? "-"}</td>
-            <td>${it.name ?? "-"}</td>
-            <td>${it.unit ?? "-"}</td>
-            <td>${it.location ?? "-"}</td>
-            <td>${it.stock ?? 0}</td>
-            <td>${it.last_in ? new Date(it.last_in).toLocaleString() : "-"}</td>
-            <td>${it.last_out ? new Date(it.last_out).toLocaleString() : "-"}</td>
-          `;
-            tr.addEventListener("click", () => {
-              els.mvItemId.value = it.id;
-            });
-            els.itemsTbody.appendChild(tr);
-          });
-      }
-
-      // Render: logg
-      function renderLog(rows) {
-        els.logTbody.innerHTML = "";
-        rows.forEach((r) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-          <td>${new Date(r.ts).toLocaleString()}</td>
-          <td>${r.type}</td>
-          <td>${r.items?.article_no ?? "-"}</td>
-          <td>${r.items?.name ?? "-"}</td>
-          <td>${r.qty}</td>
-          <td>${r.note ?? ""}</td>
-        `;
-          els.logTbody.appendChild(tr);
-        });
-      }
-
-      // Hämta
-      async function fetchItems() {
-        const { data, error } = await supabaseClient
-          .from("v_items_stock")
-          .select("*")
-          .order("article_no", { ascending: true });
-        if (error) {
-          console.error("Fel vid hämtning (items):", error);
-          alert("Kunde inte hämta artiklar.");
-          return;
-        }
-        renderItems(data);
-      }
-      async function fetchLog() {
-        const { data, error } = await supabaseClient
-          .from("movements")
-          .select(`id,ts,type,qty,note,item_id,items(article_no,name)`)
-          .order("ts", { ascending: false })
-          .limit(200);
-        if (error) {
-          console.error("Fel vid hämtning av logg:", error);
-          return;
-        }
-        renderLog(data);
-      }
-
-      // IN/OUT
-      els.mvSubmit.addEventListener("click", async () => {
-        els.mvMsg.style.display = "none";
-        const itemId = Number(els.mvItemId.value),
-          type = els.mvType.value,
-          qty = Number(els.mvQty.value),
-          note = els.mvNote.value || "",
-          loc = (els.mvLocation.value || "").trim();
-        if (!itemId || !qty || qty <= 0) {
-          alert("Ange giltigt artikel-ID och antal > 0.");
-          return;
-        }
-
-        const { error: movErr } = await supabaseClient
-          .from("movements")
-          .insert([{ type, item_id: itemId, qty, note }]);
-        if (movErr) {
-          console.error("IN/OUT fel:", movErr);
-          alert("Kunde inte spara händelsen: " + movErr.message);
-          return;
-        }
-
-        if (type === "IN" && loc !== "") {
-          const { error: updErr } = await supabaseClient
-            .from("items")
-            .update({ location: loc })
-            .eq("id", itemId);
-          if (updErr) {
-            console.warn("Plats uppdaterades inte:", updErr);
-          }
-        }
-
-        els.mvQty.value = "";
-        els.mvNote.value = "";
-        els.mvLocation.value = "";
-        els.mvMsg.textContent = "Händelse sparad";
-        els.mvMsg.style.display = "block";
-        await Promise.all([fetchItems(), fetchLog()]);
-      });
-
-      // Skapa artikel
-      els.itSaveBtn.addEventListener("click", async () => {
-        els.itMsg.style.display = "none";
-        const article_no = (els.itArticleNo.value || "").trim();
-        const name = (els.itName.value || "").trim();
-        const unit = (els.itUnit.value || "").trim() || "st";
-        const location = (els.itLocation.value || "").trim();
-        const active = !!els.itActive.checked;
-
-        if (!article_no || !name) {
-          alert("Artikelnummer och Benämning måste fyllas i.");
-          return;
-        }
-
-        const { data, error } = await supabaseClient
-          .from("items")
-          .insert([{ article_no, name, unit, location, active }])
-          .select("id");
-
-        console.log("Spara artikel – ERROR?", error, "DATA?", data);
-        if (error) {
-          const msg = String(error.message || "")
-            .toLowerCase()
-            .includes("duplicate")
-            ? "Artikelnummer används redan."
-            : "Kunde inte spara artikel: " + error.message;
-          alert(msg);
-          return;
-        }
-
-        els.itArticleNo.value = "";
-        els.itName.value = "";
-        els.itUnit.value = "st";
-        els.itLocation.value = "";
-        els.itActive.checked = true;
-        els.itMsg.textContent = "Artikeln sparades";
-        els.itMsg.style.display = "block";
-        await fetchItems();
-      });
-
-      // Events
-      els.btnReload.addEventListener("click", () => {
-        fetchItems();
-        fetchLog();
-      });
-      els.search.addEventListener("input", () => {
-        fetchItems();
-      });
-
-      // Start
-      (async () => {
-        await Promise.all([fetchItems(), fetchLog()]);
-      })();
-    </script>
+    <!-- Din appkod i repo-root -->
+    <script src="./app.js"></script>
   </body>
 </html>
