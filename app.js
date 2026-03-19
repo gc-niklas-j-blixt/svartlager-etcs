@@ -12,8 +12,8 @@ console.log("app.js loaded");
 /* ============================
    1) Supabase-init (UMD/global)
    ============================ */
-const SUPABASE_URL = "DIN_SUPABASE_URL_HÄR";          // t.ex. https://xxxxx.supabase.co
-const SUPABASE_ANON_KEY = "DIN_ANON_KEY_HÄR";         // din publika anon key
+const SUPABASE_URL = "https://gmpazpyqiczyesoelyqt.supabase.co";          // t.ex. https://xxxxx.supabase.co
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcGF6cHlxaWN6eWVzb2VseXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDg5OTMsImV4cCI6MjA4OTQ4NDk5M30.3sha8XnMyn18e_dl9MoBQ7CiF6X7GO5GqfCBaAeuyRE";         // din publika anon key
 
 // Skapa klient (UMD global från jsDelivr)
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
