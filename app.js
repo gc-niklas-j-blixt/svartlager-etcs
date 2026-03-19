@@ -1,35 +1,25 @@
 /*************************************************
  * SVARTLAGER ETCS – Frontend (app.js)
- * - Supabase-koppling
+ * - Supabase-koppling (UMD/global: supabase)
  * - Artikelvy (saldo + lagerplats + senaste in/ut)
  * - Händelselogg
- * - IN/OUT med kommentar
- * - Vid IN: ändra lagerplats
+ * - IN/OUT med kommentar + uppdatera lagerplats vid IN
  * - Skapa ny artikel via formulär
  **************************************************/
 
-/* ============================
-   1) Supabase-init
-   ============================ */
 console.log("app.js loaded");
 
-const SUPABASE_URL = "https://gmpazpyqiczyesoelyqt.supabase.co";       // <-- BYT till din riktiga URL
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcGF6cHlxaWN6eWVzb2VseXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDg5OTMsImV4cCI6MjA4OTQ4NDk5M30.3sha8XnMyn18e_dl9MoBQ7CiF6X7GO5GqfCBaAeuyRE";      // <-- BYT till din riktiga anon key
+/* ============================
+   1) Supabase-init (UMD/global)
+   ============================ */
+const SUPABASE_URL = "DIN_SUPABASE_URL_HÄR";          // t.ex. https://xxxxx.supabase.co
+const SUPABASE_ANON_KEY = "DIN_ANON_KEY_HÄR";         // din publika anon key
 
-// Sanity-koll så vi inte råkar köra med placeholders
-if (!SUPABASE_URL.startsWith("http")) {
-  console.error("SUPABASE_URL saknas eller är fel. Byt placeholdern mot din riktiga URL.");
-  alert("Konfigurationsfel: SUPABASE_URL saknas. Öppna app.js och klistra in dina riktiga värden.");
-}
-if (SUPABASE_ANON_KEY.length < 20) {
-  console.error("SUPABASE_ANON_KEY saknas eller är fel. Byt placeholdern mot din riktiga anon key.");
-  alert("Konfigurationsfel: SUPABASE_ANON_KEY saknas. Öppna app.js och klistra in din riktiga anon key.");
-}
-
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Skapa klient (UMD global från jsDelivr)
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ============================
-   2) DOM-helper
+   2) DOM helpers
    ============================ */
 const $ = (sel) => document.querySelector(sel);
 
@@ -39,7 +29,7 @@ const els = {
   logTbody:   $('#logTbl tbody'),
   btnReload:  $('#btnReload'),
 
-  // IN/OUT formulär
+  // IN/OUT
   mvItemId:   $('#mv-item-id'),
   mvType:     $('#mv-type'),
   mvQty:      $('#mv-qty'),
@@ -57,7 +47,7 @@ const els = {
 };
 
 /* ============================
-   3) RENDER – Artiklar
+   3) Render – Artiklar
    ============================ */
 function renderItems(items) {
   const q = (els.search.value || '').toLowerCase().trim();
@@ -81,18 +71,16 @@ function renderItems(items) {
         <td>${it.last_in  ? new Date(it.last_in).toLocaleString()  : '-'}</td>
         <td>${it.last_out ? new Date(it.last_out).toLocaleString() : '-'}</td>
       `;
-      // Snabbval: klick på rad fyller artikel-ID i IN/OUT-formuläret
       tr.addEventListener('click', () => { els.mvItemId.value = it.id; });
       els.itemsTbody.appendChild(tr);
     });
 }
 
 /* ============================
-   4) RENDER – Logg
+   4) Render – Logg
    ============================ */
 function renderLog(rows) {
   els.logTbody.innerHTML = '';
-
   rows.forEach(row => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -108,24 +96,24 @@ function renderLog(rows) {
 }
 
 /* ============================
-   5) HÄMTA – Items & Logg
+   5) Data – Hämta från Supabase
    ============================ */
 async function fetchItems() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('v_items_stock')
     .select('*')
     .order('article_no', { ascending: true });
 
   if (error) {
     console.error("Fel vid hämtning (items):", error);
-    alert("Kunde inte hämta artiklar (kontrollera URL/key och RLS).");
+    alert("Kunde inte hämta artiklar. Kontrollera URL/nyckel och policies.");
     return;
   }
   renderItems(data);
 }
 
 async function fetchLog() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('movements')
     .select(`
       id,
@@ -165,20 +153,20 @@ els.mvSubmit?.addEventListener('click', async () => {
     return;
   }
 
-  // Insert i movements
-  const { error: insErr } = await supabase
+  // Insert i movements (IN/OUT)
+  const { error: movErr } = await supabaseClient
     .from('movements')
     .insert([{ type, item_id: itemId, qty, note }]);
 
-  if (insErr) {
-    console.error("Fel vid IN/OUT:", insErr);
-    alert("Kunde inte spara händelsen. (RLS/policy kan saknas för 'movements')");
+  if (movErr) {
+    console.error("Fel vid IN/OUT:", movErr);
+    alert("Kunde inte spara händelsen. (Kontrollera movements-policies/RLS) " + movErr.message);
     return;
   }
 
-  // Vid IN + lagerplats angiven → uppdatera artikelns location
+  // Vid IN + angiven lagerplats => uppdatera artikelns location
   if (type === 'IN' && loc !== '') {
-    const { error: updErr } = await supabase
+    const { error: updErr } = await supabaseClient
       .from('items')
       .update({ location: loc })
       .eq('id', itemId);
@@ -188,7 +176,6 @@ els.mvSubmit?.addEventListener('click', async () => {
     }
   }
 
-  // Töm fält (behåll valt itemId)
   els.mvQty.value = '';
   els.mvNote.value = '';
   els.mvLocation.value = '';
@@ -212,22 +199,23 @@ els.itSaveBtn?.addEventListener('click', async () => {
     return;
   }
 
-  const { data, error } = await supabase
+  const { data: insData, error: insErr } = await supabaseClient
     .from('items')
     .insert([{ article_no, name, unit, location, active }])
     .select('id');
 
-  if (error) {
-    console.error("Kunde inte spara artikel:", error);
-    if (String(error.message || '').toLowerCase().includes('duplicate')) {
+  console.log("SUPABASE ERROR?", insErr);
+  console.log("SUPABASE DATA?", insData);
+
+  if (insErr) {
+    if (String(insErr.message || '').toLowerCase().includes('duplicate')) {
       alert("Artikelnummer används redan.");
     } else {
-      alert("Kunde inte spara artikeln. (RLS/policy kan saknas för 'items')");
+      alert("Kunde inte spara artikeln. (Kontrollera items-policies/RLS) " + insErr.message);
     }
     return;
   }
 
-  // Nollställ fält
   els.itArticleNo.value = '';
   els.itName.value      = '';
   els.itUnit.value      = 'st';
@@ -247,7 +235,7 @@ els.btnReload?.addEventListener('click', () => {
 });
 
 els.search?.addEventListener('input', () => {
-  // Enkel refetch – kan bytas mot lokal filtrering vid behov
+  // Enkel refetch – kan optimeras till lokal filtrering om du vill
   fetchItems();
 });
 
@@ -257,3 +245,4 @@ els.search?.addEventListener('input', () => {
 (async () => {
   await Promise.all([fetchItems(), fetchLog()]);
 })();
+``

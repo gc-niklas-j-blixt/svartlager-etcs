@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <title>SVARTLAGER ETCS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Minimal CSS - din styles.css ska ligga i repo-root -->
     <link rel="stylesheet" href="./styles.css" />
   </head>
+
   <body>
     <header>
       <div class="brand">
@@ -41,11 +43,16 @@
           </thead>
           <tbody></tbody>
         </table>
+        <p style="opacity: 0.75; margin: 0.5rem 0 0 0">
+          <small
+            >Tips: Klicka på en artikelrad för att fylla i artikel-ID i
+            formuläret nedan.</small
+          >
+        </p>
       </section>
 
       <section>
         <h2>Lägg till ny artikel</h2>
-
         <div class="item-form">
           <label>
             Artikelnummer (article_no)
@@ -78,7 +85,6 @@
 
       <section>
         <h2>Registrera IN / OUT</h2>
-
         <div class="movement-form">
           <label>
             Artikel-ID:
@@ -111,9 +117,9 @@
           <button id="mv-submit">Spara händelse</button>
         </div>
       </section>
+
       <section>
         <h2>Händelselogg</h2>
-
         <table id="logTbl">
           <thead>
             <tr>
@@ -130,7 +136,9 @@
       </section>
     </main>
 
-    <script type="module" src="https://esm.sh/@supabase/supabase-js@2"></script>
-    <script type="module" src="./app.js"></script>
+    <!-- Ladda Supabase som UMD (global 'supabase'); funkar på GitHub Pages -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Din appkod -->
+    <script src="./app.js"></script>
   </body>
 </html>
