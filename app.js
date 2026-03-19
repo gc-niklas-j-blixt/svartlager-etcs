@@ -1,26 +1,52 @@
 /*************************************************
- * SVARTLAGER ETCS – Frontend (app.js)
- * - Supabase-koppling (UMD/global: supabase)
- * - Artikelvy (saldo + lagerplats + senaste in/ut)
- * - Händelselogg
- * - IN/OUT med kommentar + uppdatera lagerplats vid IN
- * - Skapa ny artikel via formulär
+ * SVARTLAGER ETCS – app.js (REST-version, utan supabase-js)
+ * - Pratar direkt med Supabase REST (PostgREST) via fetch
+ * - Artikelvy (v_items_stock), logg (movements)
+ * - Skapa artikel (items)
+ * - IN/OUT (movements) + uppdatera lagerplats vid IN (items)
  **************************************************/
 
-console.log("app.js loaded");
+console.log("app.js loaded (REST)");
 
-/* ============================
-   1) Supabase-init (UMD/global)
-   ============================ */
-const SUPABASE_URL = "https://gmpazpyqiczyesoelyqt.supabase.co";          // t.ex. https://xxxxx.supabase.co
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcGF6cHlxaWN6eWVzb2VseXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MDg5OTMsImV4cCI6MjA4OTQ4NDk5M30.3sha8XnMyn18e_dl9MoBQ7CiF6X7GO5GqfCBaAeuyRE";         // din publika anon key
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// 1) FYLL I DINA EGNA VÄRDEN HÄR
+//    EX: https://gmpazpyqiczyesoelyqt.supabase.co
+const SUPABASE_URL = "DIN_SUPABASE_URL_HÄR";
+const SUPABASE_ANON_KEY = "DIN_ANON_KEY_HÄR";
+// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-// Skapa klient (UMD global från jsDelivr)
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Bas-URL till REST-API
+const REST = `${SUPABASE_URL}/rest/v1`;
 
-/* ============================
-   2) DOM helpers
-   ============================ */
+// Hjälpare för fetch mot Supabase REST
+async function api(path, { method = "GET", query = "", body = null, headers = {} } = {}) {
+  const url = `${REST}/${path}${query ? `?${query}` : ""}`;
+  const res = await fetch(url, {
+    method,
+    headers: {
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+      ...headers
+    },
+    body: body ? JSON.stringify(body) : null
+  });
+
+  // Supabase returnerar ofta 201 med JSON vid insert om vi ber om det (Prefer)
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+
+  if (!res.ok) {
+    const err = new Error((data && data.message) || `HTTP ${res.status}`);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+// DOM helpers
 const $ = (sel) => document.querySelector(sel);
 
 const els = {
@@ -43,14 +69,18 @@ const els = {
   itUnit:      $('#it-unit'),
   itLocation:  $('#it-location'),
   itActive:    $('#it-active'),
-  itSaveBtn:   $('#it-save')
+  itSaveBtn:   $('#it-save'),
+
+  // Statusmeddelanden (om du lagt in dem)
+  itMsg: document.getElementById('it-msg'),
+  mvMsg: document.getElementById('mv-msg'),
 };
 
 /* ============================
-   3) Render – Artiklar
+   Render – Artiklar
    ============================ */
 function renderItems(items) {
-  const q = (els.search.value || '').toLowerCase().trim();
+  const q = (els.search?.value || '').toLowerCase().trim();
   els.itemsTbody.innerHTML = '';
 
   items
@@ -77,117 +107,64 @@ function renderItems(items) {
 }
 
 /* ============================
-   4) Render – Logg
+   Render – Logg
    ============================ */
 function renderLog(rows) {
   els.logTbody.innerHTML = '';
-  rows.forEach(row => {
+  rows.forEach(r => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${new Date(row.ts).toLocaleString()}</td>
-      <td>${row.type}</td>
-      <td>${row.items?.article_no ?? '-'}</td>
-      <td>${row.items?.name ?? '-'}</td>
-      <td>${row.qty}</td>
-      <td>${row.note ?? ''}</td>
+      <td>${new Date(r.ts).toLocaleString()}</td>
+      <td>${r.type}</td>
+      <td>${r.items?.article_no ?? '-'}</td>
+      <td>${r.items?.name ?? '-'}</td>
+      <td>${r.qty}</td>
+      <td>${r.note ?? ''}</td>
     `;
     els.logTbody.appendChild(tr);
   });
 }
 
 /* ============================
-   5) Data – Hämta från Supabase
+   Hämta data (REST)
    ============================ */
 async function fetchItems() {
-  const { data, error } = await supabaseClient
-    .from('v_items_stock')
-    .select('*')
-    .order('article_no', { ascending: true });
+  // v_items_stock exponeras som /rest/v1/v_items_stock
+  const query = new URLSearchParams({
+    select: "*",
+    order: "article_no.asc"
+  }).toString();
 
-  if (error) {
-    console.error("Fel vid hämtning (items):", error);
-    alert("Kunde inte hämta artiklar. Kontrollera URL/nyckel och policies.");
-    return;
+  try {
+    const data = await api("v_items_stock", { query });
+    renderItems(data || []);
+  } catch (e) {
+    console.error("Fel vid hämtning (items):", e);
+    alert("Kunde inte hämta artiklar: " + e.message);
   }
-  renderItems(data);
 }
 
 async function fetchLog() {
-  const { data, error } = await supabaseClient
-    .from('movements')
-    .select(`
-      id,
-      ts,
-      type,
-      qty,
-      note,
-      item_id,
-      items (
-        article_no,
-        name
-      )
-    `)
-    .order('ts', { ascending: false })
-    .limit(200);
+  // Nested select av relaterade kolumner:
+  // items(article_no,name)
+  const query = new URLSearchParams({
+    select: "id,ts,type,qty,note,item_id,items(article_no,name)",
+    order: "ts.desc",
+    limit: "200"
+  }).toString();
 
-  if (error) {
-    console.error("Fel vid hämtning av logg:", error);
-    return;
+  try {
+    const data = await api("movements", { query });
+    renderLog(data || []);
+  } catch (e) {
+    console.error("Fel vid hämtning av logg:", e);
   }
-  renderLog(data);
 }
 
 /* ============================
-   6) IN/OUT – Spara händelse
-   ============================ */
-els.mvSubmit?.addEventListener('click', async () => {
-  console.log("KLICK: Spara händelse");
-  const itemId = Number(els.mvItemId.value);
-  const type   = els.mvType.value;
-  const qty    = Number(els.mvQty.value);
-  const note   = els.mvNote.value || '';
-  const loc    = (els.mvLocation.value || '').trim();
-
-  if (!itemId || !qty || qty <= 0) {
-    alert("Du måste ange ett giltigt artikel-ID och antal > 0.");
-    return;
-  }
-
-  // Insert i movements (IN/OUT)
-  const { error: movErr } = await supabaseClient
-    .from('movements')
-    .insert([{ type, item_id: itemId, qty, note }]);
-
-  if (movErr) {
-    console.error("Fel vid IN/OUT:", movErr);
-    alert("Kunde inte spara händelsen. (Kontrollera movements-policies/RLS) " + movErr.message);
-    return;
-  }
-
-  // Vid IN + angiven lagerplats => uppdatera artikelns location
-  if (type === 'IN' && loc !== '') {
-    const { error: updErr } = await supabaseClient
-      .from('items')
-      .update({ location: loc })
-      .eq('id', itemId);
-
-    if (updErr) {
-      console.warn("Händelsen sparades, men lagerplatsen kunde inte uppdateras:", updErr);
-    }
-  }
-
-  els.mvQty.value = '';
-  els.mvNote.value = '';
-  els.mvLocation.value = '';
-
-  await Promise.all([fetchItems(), fetchLog()]);
-});
-
-/* ============================
-   7) Skapa ny artikel
+   Skapa artikel (REST)
    ============================ */
 els.itSaveBtn?.addEventListener('click', async () => {
-  console.log("KLICK: Spara artikel");
   const article_no = (els.itArticleNo.value || '').trim();
   const name       = (els.itName.value || '').trim();
   const unit       = (els.itUnit.value || '').trim() || 'st';
@@ -199,50 +176,87 @@ els.itSaveBtn?.addEventListener('click', async () => {
     return;
   }
 
-  const { data: insData, error: insErr } = await supabaseClient
-    .from('items')
-    .insert([{ article_no, name, unit, location, active }])
-    .select('id');
+  try {
+    // Prefer return=representation så vi får tillbaka id
+    const data = await api("items", {
+      method: "POST",
+      headers: { "Prefer": "return=representation" },
+      body: [{ article_no, name, unit, location, active }]
+    });
+    console.log("Spara artikel – DATA:", data);
 
-  console.log("SUPABASE ERROR?", insErr);
-  console.log("SUPABASE DATA?", insData);
+    // Nollställ
+    els.itArticleNo.value = '';
+    els.itName.value      = '';
+    els.itUnit.value      = 'st';
+    els.itLocation.value  = '';
+    els.itActive.checked  = true;
+    if (els.itMsg) { els.itMsg.textContent = "Artikeln sparades."; els.itMsg.style.display = 'block'; }
 
-  if (insErr) {
-    if (String(insErr.message || '').toLowerCase().includes('duplicate')) {
-      alert("Artikelnummer används redan.");
-    } else {
-      alert("Kunde inte spara artikeln. (Kontrollera items-policies/RLS) " + insErr.message);
+    await fetchItems();
+  } catch (e) {
+    console.error("Spara artikel – FEL:", e, e.data);
+    let msg = e.message;
+    if (e?.data?.code === '23505' || String(e.message).toLowerCase().includes('duplicate')) {
+      msg = "Artikelnummer används redan.";
     }
+    alert("Kunde inte spara artikel: " + msg);
+  }
+});
+
+/* ============================
+   IN/OUT (REST)
+   ============================ */
+els.mvSubmit?.addEventListener('click', async () => {
+  const item_id = Number(els.mvItemId.value);
+  const type    = els.mvType.value;
+  const qty     = Number(els.mvQty.value);
+  const note    = els.mvNote.value || '';
+  const loc     = (els.mvLocation.value || '').trim();
+
+  if (!item_id || !qty || qty <= 0) {
+    alert("Ange giltigt artikel-ID och antal > 0.");
     return;
   }
 
-  els.itArticleNo.value = '';
-  els.itName.value      = '';
-  els.itUnit.value      = 'st';
-  els.itLocation.value  = '';
-  els.itActive.checked  = true;
+  try {
+    // 1) Skapa rörelsen
+    await api("movements", {
+      method: "POST",
+      headers: { "Prefer": "return=representation" },
+      body: [{ type, item_id, qty, note }]
+    });
 
-  await fetchItems();
-  alert("Artikeln sparades.");
+    // 2) Om IN och en plats angavs – uppdatera artikelns location
+    if (type === "IN" && loc !== '') {
+      const query = new URLSearchParams({ id: `eq.${item_id}` }).toString();
+      await api("items", {
+        method: "PATCH",
+        query,
+        headers: { "Prefer": "return=representation" },
+        body: { location: loc }
+      });
+    }
+
+    // Nollställ
+    els.mvQty.value = '';
+    els.mvNote.value = '';
+    els.mvLocation.value = '';
+    if (els.mvMsg) { els.mvMsg.textContent = "Händelsen sparades."; els.mvMsg.style.display = 'block'; }
+
+    await Promise.all([fetchItems(), fetchLog()]);
+  } catch (e) {
+    console.error("IN/OUT – FEL:", e, e.data);
+    alert("Kunde inte spara händelsen: " + e.message);
+  }
 });
 
 /* ============================
-   8) UI-events
+   UI events & start
    ============================ */
-els.btnReload?.addEventListener('click', () => {
-  fetchItems();
-  fetchLog();
-});
+els.btnReload?.addEventListener('click', () => { fetchItems(); fetchLog(); });
+els.search?.addEventListener('input', () => { fetchItems(); });
 
-els.search?.addEventListener('input', () => {
-  // Enkel refetch – kan optimeras till lokal filtrering om du vill
-  fetchItems();
-});
-
-/* ============================
-   9) Start
-   ============================ */
 (async () => {
   await Promise.all([fetchItems(), fetchLog()]);
 })();
-``
