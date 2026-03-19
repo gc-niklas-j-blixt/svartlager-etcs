@@ -1,0 +1,185 @@
+:root {
+  --gc-green: #3f9c35;
+  --gc-black: #1e1e1e;
+  --gc-darkgray: #8b8d8e;
+  --gc-lightgray: #bcbdbc;
+  --gc-white: #ffffff;
+
+  font-family: Arial, Helvetica, sans-serif;
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--gc-lightgray);
+  color: var(--gc-black);
+}
+/*Brand (logga + titel)*/
+header {
+  background-color: var(--gc-darkgray);
+  color: var(--gc-white);
+  padding-bottom: 0.8rem 2rem;
+  border-bottom: 4px solid var(--gc-green);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.9em; /*mellanrum mellan logga och text*/
+}
+
+.brand_logo {
+  height: 36px; /*justera vid behov: 24-44px funkar oftast*/
+  width: auto;
+  display: block;
+}
+
+.brand_text h1 {
+  margin: 0;
+  font-size: 1.5rem; /*var 1.8rem - minskat lite pga logga*/
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin: 2px 0 0 0;
+  opacity: 0.85;
+  font-size: 0.95rem;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/*Main container*/
+main {
+  padding: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/*Toolbar*/
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.toolbar input {
+  flex: 1;
+  padding: 0.6rem 8rem;
+  border: 2px solid var(--gc-darkgray);
+  background: var(--gc-white);
+  font-size: 1rem;
+}
+
+.toolbar button:hover {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--gc-white);
+}
+
+th {
+  background: var(--gc-darkgray);
+  color: var(--gc-white);
+  text-align: left;
+  padding: 0.7rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+td {
+  padding: 0.6rem;
+  border-bottom: 1px solid #d0d0d0;
+}
+
+tbody tr:hover {
+  background: rgba(79, 182, 72, 0.12); /*GC-grön highlight*/
+}
+
+.movement-form {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 400px;
+  background: var(--gc-white);
+  padding: 1rem;
+  border: 2px solid var(--gc-darkgray);
+  border-radius: 4px;
+}
+
+.movement-form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+}
+
+.movement-form input,
+.movement-form select {
+  padding: 0.5rem;
+  border: 2px solid var(--gc-darkgray);
+}
+
+#logTbl {
+  width: 100%;
+  margin-top: 1rem;
+  border-collapse: collapse;
+}
+
+#logTbl th {
+  background: var(--gc-darkgray);
+  color: var(--gc-white);
+  padding: 0.6rem;
+}
+
+#logTbl td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #ccc;
+}
+
+#logTbl tbody tr:hover {
+  background: rgba(79, 182, 72, 0.1);
+}
+
+.item-form {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 420px;
+  background: var(--gc-white);
+  padding: 1rem;
+  border: 2px solid var(--gc-darkgray);
+  border-radius: 4px;
+}
+
+.item-form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+}
+
+.item-form input[type="text"] {
+  padding: 0.5rem;
+  border: 2px solid var(--gc-darkgray);
+}
+
+.item-form .check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.item-form button {
+  padding: 0.6rem 1rem;
+  border: none;
+  background: var(--gc-green);
+  color: var(--gc-white);
+  font-weight: bold;
+  cursor: pointer;
+}
+.item-form button:hover {
+  background: #3b8f39;
+}

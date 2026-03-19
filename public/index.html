@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SVARTLAGER ETCS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <img src="./assets/GC-Logga.png" alt="Green Cargo" class="brand_logo" />
+        <div class="brand_text">
+          <h1>SVARTLAGER ETCS</h1>
+          <p class="subtitle">
+            Internt verktyg för ordning och reda på ETCS-reservdelar
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="toolbar">
+        <input type="search" id="search" placeholder="Sök artikel..." />
+        <button id="btnReload">Uppdatera</button>
+      </div>
+
+      <section>
+        <h2>Artiklar</h2>
+        <table id="itemsTbl">
+          <thead>
+            <tr>
+              <th>Art.nr</th>
+              <th>Benämning</th>
+              <th>Enhet</th>
+              <th>Lagerplats</th>
+              <th>Saldo</th>
+              <th>Senast in</th>
+              <th>Senast ut</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Lägg till ny artikel</h2>
+
+        <div class="item-form">
+          <label>
+            Artikelnummer (article_no)
+            <input id="it-article-no" type="text" placeholder="t.ex. A-100" />
+          </label>
+
+          <label>
+            Benämning (name)
+            <input id="it-name" type="text" placeholder="t.ex. Skruv M8x20" />
+          </label>
+
+          <label>
+            Enhet (unit)
+            <input id="it-unit" type="text" value="st" />
+          </label>
+
+          <label>
+            Lagerplats (location)
+            <input id="it-location" type="text" placeholder="t.ex. HyllA-3" />
+          </label>
+
+          <label class="check">
+            <input id="it-active" type="checkbox" checked />
+            Aktiv
+          </label>
+
+          <button id="it-save">Spara artikel</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Registrera IN / OUT</h2>
+
+        <div class="movement-form">
+          <label>
+            Artikel-ID:
+            <input id="mv-item-id" type="number" placeholder="t.ex. 1" />
+          </label>
+
+          <label>
+            Typ:
+            <select id="mv-type">
+              <option value="IN">IN (inleverans)</option>
+              <option value="OUT">OUT (uttag)</option>
+            </select>
+          </label>
+
+          <label>
+            Antal:
+            <input id="mv-qty" type="number" min="1" placeholder="t.ex. 5" />
+          </label>
+
+          <label>
+            Lagerplats (endast för IN):
+            <input id="mv-location" type="text" placeholder="t.ex. HyllA-3" />
+          </label>
+
+          <label>
+            Kommentar (valfri):
+            <input id="mv-note" type="text" placeholder="Valfri text" />
+          </label>
+
+          <button id="mv-submit">Spara händelse</button>
+        </div>
+      </section>
+      <section>
+        <h2>Händelselogg</h2>
+
+        <table id="logTbl">
+          <thead>
+            <tr>
+              <th>Tid</th>
+              <th>Typ</th>
+              <th>Art.nr</th>
+              <th>Namn</th>
+              <th>Antal</th>
+              <th>Kommentar</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </main>
+
+    <script type="module" src="https://esm.sh/@supabase/supabase-js@2"></script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
